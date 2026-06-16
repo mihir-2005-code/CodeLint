@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CodeMint — Instant Python Review</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d1117;
+    --panel: #11161d;
+    --panel-raised: #161c25;
+    --border: #232b36;
+    --text: #e6edf3;
+    --text-dim: #8b95a3;
+    --accent: #7ee787;
+    --accent-dim: #3fb950;
+    --error: #ff7b72;
+    --warning: #ffa657;
+    --info: #79c0ff;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Space Grotesk', sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+  }
+
+  .wrap {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+  }
+
+  header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 36px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .logo {
+    font-family: var(--mono);
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .logo .dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 12px var(--accent);
+  }
+
+  .tagline {
+    font-size: 13px;
+    color: var(--text-dim);
+    font-family: var(--mono);
+  }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--border);
+    background: var(--panel-raised);
+  }
+
+  .panel-head .label {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .traffic { display: flex; gap: 6px; }
+  .traffic span {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: #30363d;
+  }
+
+  textarea {
+    width: 100%;
+    min-height: 360px;
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 14px;
+    line-height: 1.65;
+    padding: 18px;
+    resize: vertical;
+    outline: none;
+    tab-size: 4;
+  }
+
+  textarea::placeholder { color: #4d5666; }
+
+  .actions {
+    display: flex;
+    gap: 12px;
+    margin: 18px 0 36px;
+    align-items: center;
+  }
+
+  button.run {
+    background: var(--accent);
+    color: #04220c;
+    border: none;
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: 14px;
+    padding: 13px 26px;
+    border-radius: 8px;
+    cursor: pointer;
+    letter-spacing: 0.01em;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+  }
+
+  button.run:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(126,231,135,0.25); }
+  button.run:active { transform: translateY(0); }
+  button.run:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  button.sample {
+    background: transparent;
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 12px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+
+  button.sample:hover { color: var(--text); border-color: #3a4452; }
+
+  .status {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  .summary-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .stat {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+  }
+
+  .stat .num {
+    font-family: var(--mono);
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .stat .lbl {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .stat.total .num { color: var(--text); }
+  .stat.errors .num { color: var(--error); }
+  .stat.warnings .num { color: var(--warning); }
+  .stat.info .num { color: var(--info); }
+
+  .issues-panel { margin-top: 0; }
+
+  .issue {
+    display: flex;
+    gap: 14px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    align-items: flex-start;
+  }
+
+  .issue:last-child { border-bottom: none; }
+
+  .issue .line-badge {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-dim);
+    background: var(--panel-raised);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 3px 8px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .issue .sev-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    margin-top: 6px;
+    flex-shrink: 0;
+  }
+
+  .sev-error .sev-dot { background: var(--error); }
+  .sev-warning .sev-dot { background: var(--warning); }
+  .sev-info .sev-dot { background: var(--info); }
+
+  .issue-content { flex: 1; }
+
+  .issue-message { font-size: 14px; line-height: 1.5; margin-bottom: 4px; }
+
+  .issue-category {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .empty-state {
+    padding: 56px 24px;
+    text-align: center;
+    color: var(--text-dim);
+  }
+
+  .empty-state .icon {
+    font-size: 32px;
+    margin-bottom: 12px;
+    opacity: 0.6;
+  }
+
+  .empty-state .clean {
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  footer {
+    margin-top: 48px;
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 12px;
+    font-family: var(--mono);
+  }
+
+  @media (max-width: 640px) {
+    .summary-row { grid-template-columns: repeat(2, 1fr); }
+    .actions { flex-wrap: wrap; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <header>
+    <div class="logo"><span class="dot"></span>CodeLint</div>
+    <div class="tagline">rule-based python review &mdash; zero API cost</div>
+  </header>
+
+  <div class="panel">
+    <div class="panel-head">
+      <div class="traffic"><span></span><span></span><span></span></div>
+      <span class="label">paste_your_code.py</span>
+    </div>
+    <textarea id="codeInput" placeholder="def my_function(items=[]):
+    try:
+        result = eval(input())
+    except:
+        pass
+    print(result)
+    return result"></textarea>
+  </div>
+
+  <div class="actions">
+    <button class="run" id="runBtn" onclick="runReview()">Run Review &rarr;</button>
+    <button class="sample" onclick="loadSample()">Load sample code</button>
+    <span class="status" id="statusText"></span>
+  </div>
+
+  <div id="resultsArea"></div>
+
+  <footer>built for the SWE intern pipeline &mdash; no AI calls, just pattern matching</footer>
+
+</div>
+
+<script>
+const SAMPLE_CODE = `def calculate_total(items=[]):
+	for i in range(len(items)):
+		print(items[i])
+	try:
+		result = eval(items[0])
+	except:
+		pass
+	# TODO: handle empty list case
+	TotalValue = sum(items)
+	return TotalValue`;
+
+function loadSample() {
+  document.getElementById('codeInput').value = SAMPLE_CODE;
+}
+
+const severityOrder = { error: 0, warning: 1, info: 2 };
+
+async function runReview() {
+  const code = document.getElementById('codeInput').value;
+  const btn = document.getElementById('runBtn');
+  const status = document.getElementById('statusText');
+  const resultsArea = document.getElementById('resultsArea');
+
+  if (!code.trim()) {
+    status.textContent = 'paste some code first';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Analyzing...';
+  status.textContent = '';
+
+  try {
+    const res = await fetch('/review', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code })
+    });
+    const data = await res.json();
+    renderResults(data);
+  } catch (err) {
+    status.textContent = 'error connecting to server';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Run Review →';
+  }
+}
+
+function renderResults(data) {
+  const { issues, summary } = data;
+  const resultsArea = document.getElementById('resultsArea');
+
+  if (!issues || issues.length === 0) {
+    resultsArea.innerHTML = `
+      <div class="panel">
+        <div class="empty-state">
+          <div class="icon">✓</div>
+          <div class="clean">No issues found</div>
+        </div>
+      </div>`;
+    return;
+  }
+
+  const sorted = [...issues].sort((a, b) => severityOrder[a.severity] - severityOrder[b.severity]);
+
+  const statsHTML = `
+    <div class="summary-row">
+      <div class="stat total"><div class="num">${summary.total}</div><div class="lbl">Total</div></div>
+      <div class="stat errors"><div class="num">${summary.errors}</div><div class="lbl">Errors</div></div>
+      <div class="stat warnings"><div class="num">${summary.warnings}</div><div class="lbl">Warnings</div></div>
+      <div class="stat info"><div class="num">${summary.info}</div><div class="lbl">Info</div></div>
+    </div>`;
+
+  const issuesHTML = sorted.map(issue => `
+    <div class="issue sev-${issue.severity}">
+      <span class="line-badge">L${issue.line}</span>
+      <span class="sev-dot"></span>
+      <div class="issue-content">
+        <div class="issue-message">${escapeHTML(issue.message)}</div>
+        <div class="issue-category">${escapeHTML(issue.category)}</div>
+      </div>
+    </div>`).join('');
+
+  resultsArea.innerHTML = `
+    ${statsHTML}
+    <div class="panel issues-panel">
+      <div class="panel-head"><span class="label">Findings</span></div>
+      ${issuesHTML}
+    </div>`;
+}
+
+function escapeHTML(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+</script>
+
+</body>
+</html>
